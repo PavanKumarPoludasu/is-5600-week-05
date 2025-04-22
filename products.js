@@ -1,13 +1,11 @@
 const fs = require('fs').promises
 const path = require('path')
-
-const productsFile = path.join(__dirname, 'data/full-products.json')
-
-// Add these lines at the top
 const cuid = require('cuid')
 const db = require('./db')
 
-// Define our Product Model (add this after the imports)
+const productsFile = path.join(__dirname, 'data/full-products.json')
+
+// Define our Product Model
 const Product = db.model('Product', {
   _id: { type: String, default: cuid },
   description: { type: String },
@@ -34,29 +32,15 @@ const Product = db.model('Product', {
   }], 
 })
 
-// products.js
-/**
- * Create a new product
- * @param {Object} product
- * @returns {Promise<Object>}
- */
-async function create (fields) {
-  const product = await new Product(fields).save()
-  return product
-}
-
-// Existing methods (do not modify these)
-// products.js
 /**
  * List products
- * @param {Object} query
- * @returns {Promise<Object[]>}
+ * @param {*} options 
+ * @returns 
  */
-async function list (options = {}) {
-  const { offset = 0, limit = 25, tag } = options
+async function list(options = {}) {
 
-  // Use a ternary statement to create the query object. Then pass 
-  // the query object to Mongoose to filter the products
+  const { offset = 0, limit = 25, tag } = options;
+
   const query = tag ? {
     tags: {
       $elemMatch: {
@@ -64,65 +48,50 @@ async function list (options = {}) {
       }
     }
   } : {}
+
   const products = await Product.find(query)
     .sort({ _id: 1 })
     .skip(offset)
     .limit(limit)
-    
+
   return products
 }
 
 /**
- * Get a product
- * @param {String} _id
- * @returns {Promise<Object>}
+ * Get a single product
+ * @param {string} id
+ * @returns {Promise<object>}
  */
 async function get(_id) {
   const product = await Product.findById(_id)
   return product
 }
+async function create(fields){
+  const product = await new Product(fields).save()
+  return product
+}
 
-
-// products.js
-
-/**
- * Edit a product
- * @param {String} _id
- * @param {Object} change
- * @returns {Promise<Object>}
- */
 async function edit (_id, change) {
   const product = await get(_id)
-
-  // todo can we use spread operators here?
+  
   Object.keys(change).forEach(function (key) {
     product[key] = change[key]
   })
-  
+
   await product.save()
 
   return product
 }
 
-/**
- * Delete a product
- * @param {String} _id
- * @returns {Promise<Object>}
- */
 async function destroy (_id) {
   return await Product.deleteOne({_id})
 }
 
-/*module.exports = {
-  list,
-  get
-}*/
-
 module.exports = {
   list,
-  get,
-  create,   // Add this
-  edit,     // You can also add this for future use
-  destroy   // And this too
+  create,
+  edit,
+  destroy,
+  get
 }
 

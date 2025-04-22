@@ -61,7 +61,7 @@ async function get (_id) {
   const order = await Order.findById(_id)
     .populate('products')
     .exec()
-  
+
   return order
 }
 
@@ -76,43 +76,23 @@ async function create (fields) {
   return order
 }
 
-
-// orders.js
-
-/**
- * Edit an order
- * @param {String} _id
- * @param {Object} change
- * @returns {Promise<Object>}
- */
 async function edit(_id, change) {
-    const order = await Order.findById(_id)
-    
-    if (!order) {
-      throw new Error('Order not found')
-    }
-  
-    // Update order fields based on the 'change' object
-    Object.keys(change).forEach(key => {
-      order[key] = change[key]
-    })
-  
-    await order.save()
-  
-    // Return the updated order
-    return order
-  }
-  
-  /**
-   * Delete an order
-   * @param {String} _id
-   * @returns {Promise<void>}
-   */
-  async function destroy(_id) {
-    const result = await Order.deleteOne({ _id })
-  
-    if (result.deletedCount === 0) {
-      throw new Error('Order not found')
-    }
-  }
-  
+  const order = await get(_id)
+  Object.keys(change).forEach(function (key) {
+    order[key] = change[key]
+  })
+  await order.save()
+  return order
+}
+
+async function destroy(_id) {
+  return await Order.deleteOne({_id})
+}
+
+module.exports = {
+  create,
+  get,
+  list,
+  edit,
+  destroy
+}
